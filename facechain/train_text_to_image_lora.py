@@ -682,8 +682,8 @@ def main():
             text_encoder = Swift.prepare_model(text_encoder, lora_config)
     else:
         # freeze parameters of models to save more memory
-        unet.requires_grad_(False)
-        vae.requires_grad_(False)
+        unet.requires_grad_(True)
+        vae.requires_grad_(True)
 
         text_encoder.requires_grad_(False)
 
