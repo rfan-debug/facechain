@@ -664,6 +664,7 @@ def main():
                 'Please install swift by `pip install ms-swift` to use efficient_tuners.'
             )
         from swift import LoRAConfig, Swift
+        from swift.tuners.lora_layers import LoraModel
 
         UNET_TARGET_MODULES = ['to_q', 'to_k', 'to_v', 'query', 'key', 'value', 'to_out.0']
         TEXT_ENCODER_TARGET_MODULES = ["q_proj", "v_proj"]
@@ -690,9 +691,9 @@ def main():
                 lora_dropout=args.lora_text_encoder_dropout,
                 bias=args.lora_text_encoder_bias,
             )
-            text_encoder_one = LoraModel(config, text_encoder_one)
+            text_encoder_one = LoraModel(lora_config, text_encoder_one)
             text_encoder_one = Swift.prepare_model(text_encoder_one, lora_config)
-            text_encoder_two = LoraModel(config, text_encoder_two)
+            text_encoder_two = LoraModel(lora_config, text_encoder_two)
             text_encoder_two = Swift.prepare_model(text_encoder_two, lora_config)
     else:
         # freeze parameters of models to save more memory
@@ -1263,9 +1264,9 @@ def main():
             unwarpped_unet.save_pretrained(os.path.join(args.output_dir, 'swift'))
             if args.train_text_encoder:
                 unwarpped_text_encoder_one = accelerator.unwrap_model(text_encoder_one)
-                unwarpped_text_encoder.save_pretrained(os.path.join(args.output_dir, 'text_encoder_one'))
+                unwarpped_text_encoder_one.save_pretrained(os.path.join(args.output_dir, 'text_encoder_one'))
                 unwarpped_text_encoder_two = accelerator.unwrap_model(text_encoder_two)
-                unwarpped_text_encoder.save_pretrained(os.path.join(args.output_dir, 'text_encoder_two'))
+                unwarpped_text_encoder_two.save_pretrained(os.path.join(args.output_dir, 'text_encoder_two'))
         else:
             unet = unet.to(torch.float32)
             unet.save_attn_procs(args.output_dir, safe_serialization=False)

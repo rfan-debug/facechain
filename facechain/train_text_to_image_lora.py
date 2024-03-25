@@ -646,12 +646,13 @@ def main():
                 bias=args.lora_text_encoder_bias,
             )
             text_encoder = LoraModel(config, text_encoder)
-    elif args.use_swift:                
+    elif args.use_swift:
         if not is_swift_available():
             raise ValueError(
                 'Please install swift by `pip install ms-swift` to use efficient_tuners.'
             )
         from swift import LoRAConfig, Swift
+        from swift.tuners.lora_layers import LoraModel
 
         UNET_TARGET_MODULES = ['to_q', 'to_k', 'to_v', 'query', 'key', 'value', 'to_out.0']
         TEXT_ENCODER_TARGET_MODULES = ["q_proj", "v_proj"]
@@ -677,7 +678,7 @@ def main():
                 lora_dropout=args.lora_text_encoder_dropout,
                 bias=args.lora_text_encoder_bias,
             )
-            text_encoder = LoraModel(config, text_encoder)
+            text_encoder = LoraModel(lora_config, text_encoder)
             text_encoder = Swift.prepare_model(text_encoder, lora_config)
     else:
         # freeze parameters of models to save more memory
@@ -1025,6 +1026,9 @@ def main():
                     raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
                 # Predict the noise residual and compute loss
+                print(unet.base_model_torch_dtype)
+                print(noisy_latents.dtype)
+                print(encoder_hidden_states.dtype)
                 model_pred = unet(noisy_latents, timesteps, encoder_hidden_states).sample
                 loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
 
